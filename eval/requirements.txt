@@ -1,0 +1,16 @@
+lm-eval[ifeval,sentencepiece]==0.4.8
+alpaca_eval==0.6.6
+vllm==0.6.6
+beaker-gantry>=0.22.2
+beaker-py>=1.26.5
+fastchat>=0.1.0
+prompt-toolkit>=3.0.43
+fschat>=0.2.36
+tenacity>=8.4.1
+transformers==4.45.2
+aiolimiter==1.1.0
+gradio==5.25.2
+plotly==6.3.0
+spacy==3.7.5
+emoji==2.14.1
+syllapy==0.7.2

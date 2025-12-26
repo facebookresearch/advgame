@@ -1,0 +1,5 @@
+group: meta_instruct
+task:
+- meta_ifeval
+- meta_gpqa_cot
+- meta_mmlu_pro_instruct

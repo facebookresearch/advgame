@@ -1,0 +1,35 @@
+# Build Artifacts
+build/
+
+# Core Dumps
+core
+core.*
+
+# Byte-Compiled Modules
+__pycache__/
+
+# Packaging Artifacts
+*.egg-info
+*.whl
+
+# IDEs and Tools
+.idea/
+.gdb_history
+
+# Other
+.DS_Store
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter
+**/.ipynb_checkpoints
+
+**/logs/
+logs/
