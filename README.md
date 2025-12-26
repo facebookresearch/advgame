@@ -50,7 +50,7 @@ The following instructions assume you are using [Slurm](https://slurm.schedmd.co
 
 First allocate resources on Slurm. Below is for training on 2 nodes (= 16 H100/H200 GPUs):
 ```
-salloc --nodes 2 --tasks-per-node 8 --cpus-per-task 24 -t 72:00:00 --gpus-per-node=8 --mem=32G --account=ACCOUNT --job-name advgame
+salloc --nodes 2 --tasks-per-node 8 --cpus-per-task 24 -t 72:00:00 --gpus-per-node=8 --mem=0 --account=ACCOUNT --job-name advgame
 ```
 
 Activate env if not done yet:
@@ -71,3 +71,6 @@ bash scripts/start_training_wray_ray_multinode.sh configs/paper/qwen25/paper_qwe
 ## Evaluations
 
 See the [eval/](eval/) directory for detailed instructions on running evaluations after training completes.
+
+## License
+The majority of AdvGame is licensed under [CC-BY-NC 4.0 license](./LICENSE), however portions of the project are available under separate license terms: fairseq2 is licensed under the MIT license (see [fairseq2/LICENSE](./fairseq2/LICENSE)); safety-eval-fork is licensed under [Apache-2.0](eval/safety-eval-fork/LICENSE.md);

@@ -226,14 +226,3 @@ checkpoint: "hg://qwen/qwen3-4b-instruct-2507"
 tokenizer: "hg://qwen/qwen3-4b-instruct-2507"
 tokenizer_family: qwen
 use_im_end: true
-
-
----
-
-name: qwen3_4b_instruct_2507_abliterated
-model_family: qwen
-model_arch: qwen3_4b
-checkpoint: "/checkpoint/memorization/apaulus/models/Huihui-Qwen3-4B-Instruct-2507-abliterated"
-tokenizer: "/checkpoint/memorization/apaulus/models/Huihui-Qwen3-4B-Instruct-2507-abliterated"
-tokenizer_family: qwen
-use_im_end: true
