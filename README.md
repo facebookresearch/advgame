@@ -1,4 +1,4 @@
-# sp_advgame
+# Safety Alignment of LMs via Non-cooperative Games
 
 ## Install
 Clone the relevant repositories

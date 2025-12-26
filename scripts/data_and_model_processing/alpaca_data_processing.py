@@ -1,8 +1,12 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
 from datasets import load_dataset, concatenate_datasets
 
 seed = 42
 hf_dir = "tatsu-lab/alpaca"
-download_dir = "/checkpoint/memorization/apaulus/datasets/wildjailbreak_alpaca"
+download_dir = "DESTINATION_DIR"
 
 ds = load_dataset(hf_dir, "default")["train"]
 ds = ds.remove_columns(["input", "output", "text"])

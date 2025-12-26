@@ -1,4 +1,8 @@
 #!/bin/bash
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
 
 ### SBATCH directives to specify job configuration
 ## %j is the job id, %u is the user id. These files are where output is printed.
@@ -55,9 +59,13 @@ NUM_TRAINING_PROCS=8
 # srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune /checkpoint/ram/kulikov/online_dpo_frombase_test --no-sweep-dir --config-file ./online_dpo_config.yaml --config criterion.config.vllm_model.ray_cluster_ip_address=$last_node_ip
 
 CONFIG_PATH=$1
+SAVE_BASE_PATH=${2:-"/checkpoint/"}
+if [[ "${SAVE_BASE_PATH}" != */ ]]; then
+    SAVE_BASE_PATH="${SAVE_BASE_PATH}/"
+fi
 CONFIG_NAME="${CONFIG_PATH##*/}"
 CONFIG_NAME="${CONFIG_NAME%.*}"
 DATE="$(date +%Y%m%d-%H%M%S)"
 RUN_NAME="${CONFIG_NAME}_${DATE}"
 
-srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune_game /checkpoint/memorization/$USER/$RUN_NAME --no-sweep-dir --config-file ${CONFIG_PATH} --config vllm.ray_cluster_ip_address=$last_node_ip common.metric_recorders.wandb.run_name=$RUN_NAME
+srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune_game ${SAVE_BASE_PATH}${RUN_NAME} --no-sweep-dir --config-file ${CONFIG_PATH} --config vllm.ray_cluster_ip_address=$last_node_ip common.metric_recorders.wandb.run_name=$RUN_NAME
