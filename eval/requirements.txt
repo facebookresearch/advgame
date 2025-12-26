@@ -7,7 +7,7 @@ fastchat>=0.1.0
 prompt-toolkit>=3.0.43
 fschat>=0.2.36
 tenacity>=8.4.1
-transformers==4.45.2
+transformers==4.53.0
 aiolimiter==1.1.0
 gradio==5.25.2
 plotly==6.3.0
