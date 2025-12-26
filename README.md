@@ -1,78 +1,73 @@
 # Safety Alignment of LMs via Non-cooperative Games
+[Anselm Paulus](https://scholar.google.com/citations?user=njZL5CQAAAAJ),
+[Ilia Kulikov](https://scholar.google.com/citations?user=fN7fYXIAAAAJ),
+[Brandon Amos](https://bamos.github.io/),
+[Rémi Munos](https://scholar.google.com/citations?hl=en&user=OvKEnVwAAAAJ),
+[Ivan Evtimov](https://ivanevtimov.eu/),
+[Kamalika Chaudhuri](https://cseweb.ucsd.edu/~kamalika)
+[Arman Zharmagambetov](https://arman-z.github.io),
+
+
+This repo is an official implementation of the **AdvGame** ([arxiv:2512.20806](https://arxiv.org/abs/2512.20806)).
+
+tl;dr: We train Attacker LM and Defender LM to play against each others. This leads to a Defender with much better utility-safety tradeoff, and an Attacker that is quite useful for downstream red-teaming tasks.
 
 ## Install
-Clone the relevant repositories
+Clone the repository
 ```
-cd ~/Projects
-git clone git@github.com:fairinternal/sp_advgame.git
-git clone git@github.com:fairinternal/fairseq2-ext.git
-git clone git@github.com:facebookresearch/fairseq2.git
+git clone git@github.com:facebookresearch/advgame.git
+cd advgame
 ```
 
-Obtain a compute on which all proceeding install steps are performed e.g. via
+Run the installation script:
 ```
-srun --ntasks=1 --ntasks-per-node=1 --cpus-per-task 16  --mem-per-cpu=16G -t 24:00:00 --gpus-per-node=1 --account=memorization --qos=h200_memorization_high --pty zsh
-```
-
-Create the uv venv
-```
-export ENV_PATH=/storage/home/apaulus/envs/advgame
-uv venv $ENV_PATH
-source $ENV_PATH/bin/activate
+bash install_env.sh
 ```
 
-Install dependencies
+## Data and Models
+
+The following instructions assume you are using [Slurm](https://slurm.schedmd.com/documentation.html) for job scheduling and resource management. If you're not using Slurm, adapt the commands to your scheduler or environment.
+
+### Models
+Activate env if not activated yet:
 ```
-cd ~/Projects/fairseq2-ext
-uv sync --extra fs2v05-pt271-cu126 --active
+source ./env/bin/activate
 ```
 
-Add sp_advgame as remote in fairseq2 inside env
+Run the following command to download Qwen2.5 models under /scratch/models/:
 ```
-cd ~/Projects/fairseq2
-git remote add sp_advgame git@github.com:fairinternal/sp_advgame.git
-git fetch sp_advgame
-git checkout fairseq2/gdpo
+srun --ntasks=$SLURM_NNODES --ntasks-per-node=1 bash scripts/download_qwen_models.sh
 ```
+Alternatively, see [scripts/download_llama3_models.sh](scripts/download_llama3_models.sh) for downloading Llama3 models and [scripts/parallel_rsync_copy.sh](scripts/parallel_rsync_copy.sh) to copy your local models under /scratch/models/.
 
-Replace installed fairse2 with editable install **on our fairseq2/gdpo branch**
-```
-cd ~/Projects/fairseq2
-pip uninstall fairseq2
-pip install --no-deps -e .
-```
-If a warning shows that fairseq2 is not installed, try deactivating and reactivating the uv venv
+### Data
 
-Install remaining deps
-```
-uv pip install polars retrying pandas xxhash
-```
+Dataset is already pre-generated and available under [data/wildjailbreak_alpaca/](data/wildjailbreak_alpaca/). We also provide the original data generation scripts available under [scripts/data_and_model_processing/](scripts/data_and_model_processing/).
+
 
 ## Training
-First allocate resources:
-- Testing:
+The following instructions assume you are using [Slurm](https://slurm.schedmd.com/documentation.html) for job scheduling and resource management. If you're not using Slurm, adapt the commands to your scheduler or environment.
+
+First allocate resources on Slurm. Below is for training on 2 nodes (= 16 H100/H200 GPUs):
 ```
-salloc --nodes 2 --tasks-per-node 4 --cpus-per-task 8 --mem-per-cpu=16G -t 24:00:00 --gpus-per-node=4 --account=memorization --qos=h200_dev --job-name advgame_test
-```
-- Full training:
-```
-salloc --nodes 2 --tasks-per-node 8 --cpus-per-task 24 -t 72:00:00 --gpus-per-node=8 --mem=0G --account=memorization --qos=h200_alignment_vip --job-name advgame
+salloc --nodes 2 --tasks-per-node 8 --cpus-per-task 24 -t 72:00:00 --gpus-per-node=8 --mem=32G --account=ACCOUNT --job-name advgame
 ```
 
-After it is allocated, change directory and activate env
+Activate env if not activated yet:
 ```
-cd ~/Project/sp_advgame/scipts
-source ~/envs/YOUR_ENV_NAME/bin/activate
+source ./env/bin/activate
 ```
-For testing run
+
+Run the training script:
 ```
-bash start_training_wray_ray_multinode.sh ../configs/online_dpo_game_pairwise_llama3_2_1b_test.yaml "test"
+bash scripts/start_training_wray_ray_multinode.sh PATH_TO_CONFIG FULL_PATH_TO_DATASET PATH_TO_DUMP_CHECKPOINTS
 ```
-Or to run full training, first sync models to scratch for fast loading
+
+You might want to check [configs/paper/](configs/paper/) to see/modify training configurations and hyperparameters. For example, the following will launch [AdvGame-DPO on Qwen2.5](configs/paper/qwen25/paper_qwen25_dpo_pairwise_offpolicy.yaml).
 ```
-srun --ntasks=$SLURM_NNODES --ntasks-per-node=1 bash parallel_rsync_copy.sh /checkpoint/memorization/apaulus/models /scratch
+bash scripts/start_training_wray_ray_multinode.sh configs/paper/qwen25/paper_qwen25_dpo_pairwise_offpolicy.yaml /home/advgame/data/wildjailbreak_alpaca /checkpoint/advgame
 ```
-and run
-```
-bash start_training_wray_ray_multinode.sh ../configs/online_dpo_game_pairwise_llama3_1_8b_abliterated_llama3_1_8b_llama3_3_70b_abliterated.yaml "your_job_description"
-```
+
+## Evaluations
+
+See the [eval/](eval/) directory for detailed instructions on running evaluations after training completes.

@@ -1,8 +1,4 @@
 #!/bin/bash
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
 
 # set -x
 # --- Parse arguments ---
@@ -82,14 +78,12 @@ echo "NUM_TRAINING_PROCS: $NUM_TRAINING_PROCS"
 
 
 CONFIG_PATH=$1
-SAVE_BASE_PATH=${2:-"/checkpoint/"}
-if [[ "${SAVE_BASE_PATH}" != */ ]]; then
-    SAVE_BASE_PATH="${SAVE_BASE_PATH}/"
-fi
-DESCRIPTOR=${3:-"advgame"}
+DATASET_PATH=$2
 CONFIG_NAME="${CONFIG_PATH##*/}"
 CONFIG_NAME="${CONFIG_NAME%.*}"
 DATE="$(date +%Y%m%d-%H%M%S)"
-RUN_NAME="${CONFIG_NAME}/${DATE}_${DESCRIPTOR}"
+RUN_NAME="${CONFIG_NAME}/${DATE}"
 
-srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune_game ${SAVE_BASE_PATH}${RUN_NAME} --no-sweep-dir --config-file ${CONFIG_PATH} --config vllm.ray_cluster_ip_address=$last_node_ip common.metric_recorders.wandb.run_name=${RUN_NAME}
+DUMP_DIR=$3/run_$RUN_NAME
+
+srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune_game  --no-sweep-dir $DUMP_DIR --config-file ${CONFIG_PATH} --config vllm.ray_cluster_ip_address=$last_node_ip common.metric_recorders.wandb.run_name=${RUN_NAME} dataset.path=${DATASET_PATH}

@@ -6,7 +6,7 @@ from datasets import load_dataset, concatenate_datasets
 
 seed = 42
 hf_dir = "allenai/wildjailbreak"
-download_dir = "/checkpoint/memorization/apaulus/datasets/wildjailbreak"
+download_dir = "YOUR_DATA_SAVE_PATH"
 
 ds = load_dataset(hf_dir, "train", delimiter="\t", keep_default_na=False)["train"]
 ds = ds.remove_columns(["adversarial", "completion"])

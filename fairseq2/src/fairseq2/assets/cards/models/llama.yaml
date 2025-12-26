@@ -1,0 +1,221 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+name: llama
+model_family: llama
+checkpoint: "https://ai.meta.com/llama/;gated=true"
+tokenizer: "https://ai.meta.com/llama/;gated=true"
+tokenizer_family: llama
+
+---
+
+name: llama_7b
+base: llama
+model_arch: 7b
+
+---
+
+name: llama2
+model_family: llama
+checkpoint: "https://ai.meta.com/llama/;gated=true"
+tokenizer: "https://ai.meta.com/llama/;gated=true"
+tokenizer_family: llama
+
+---
+
+name: llama2_7b
+base: llama2
+model_arch: llama2_7b
+
+---
+
+name: llama2_7b_chat
+base: llama2
+model_arch: llama2_7b
+
+---
+
+name: llama2_13b
+base: llama2
+model_arch: llama2_13b
+
+---
+
+name: llama2_13b_chat
+base: llama2
+model_arch: llama2_13b
+
+---
+
+name: llama2_70b
+base: llama2
+model_arch: llama2_70b
+num_shards: 8
+
+---
+
+name: llama2_70b_chat
+base: llama2
+model_arch: llama2_70b
+num_shards: 8
+
+---
+
+name: llama3
+model_family: llama
+checkpoint: "https://ai.meta.com/llama/;gated=true"
+tokenizer: "https://ai.meta.com/llama/;gated=true"
+tokenizer_family: llama
+use_v2_tokenizer: true
+
+---
+
+name: llama3_instruct
+base: llama3
+use_eot: true  # instruct tokenizer to use EOT instead of EOS
+
+---
+
+name: llama3_8b
+base: llama3
+model_arch: llama3_8b
+
+---
+
+name: llama3_8b_instruct
+base: llama3_instruct
+model_arch: llama3_8b
+
+---
+
+name: llama3_70b
+base: llama3
+model_arch: llama3_70b
+num_shards: 8
+
+---
+
+name: llama3_70b_instruct
+base: llama3_instruct
+model_arch: llama3_70b
+num_shards: 8
+
+---
+
+name: llama3_1_8b
+base: llama3
+model_arch: llama3_1_8b
+
+---
+
+name: llama3_1_8b_instruct
+base: llama3_instruct
+model_arch: llama3_1_8b
+
+---
+
+name: llama3_1_70b
+base: llama3
+model_arch: llama3_1_70b
+num_shards: 8
+
+---
+
+name: llama3_1_70b_instruct
+base: llama3_instruct
+model_arch: llama3_1_70b
+num_shards: 8
+
+---
+
+name: llama3_2_1b
+base: llama3
+model_arch: llama3_2_1b
+
+---
+
+name: llama3_2_1b_instruct
+base: llama3_instruct
+model_arch: llama3_2_1b
+
+---
+
+name: llama3_2_3b
+base: llama3
+model_arch: llama3_2_3b
+
+---
+
+name: llama3_2_3b_instruct
+base: llama3_instruct
+model_arch: llama3_2_3b
+
+---
+
+name: llama3_3_70b_instruct
+base: llama3_instruct
+model_arch: llama3_1_70b
+num_shards: 8
+
+---
+
+name: r1_distilled_llama3_1_8b_instruct
+model_family: llama
+model_arch: llama3_1_8b
+checkpoint: "hg://deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+tokenizer: "hg://deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+tokenizer_family: llama
+use_v2_tokenizer: true
+
+---
+
+name: llama3_1_8b_instruct_scratch
+model_family: llama
+model_arch: llama3_1_8b
+checkpoint: "/scratch/models/Llama-3.1-8B-Instruct"
+tokenizer: "/scratch/models/Llama-3.1-8B-Instruct"
+tokenizer_family: llama
+use_v2_tokenizer: true
+
+---
+
+name: llama3_1_8b_instruct_abliterated_scratch
+model_family: llama
+model_arch: llama3_1_8b
+checkpoint: "/scratch/models/Llama-3.1-8B-Instruct-abliterated"
+tokenizer: "/scratch/models/Llama-3.1-8B-Instruct-abliterated"
+tokenizer_family: llama
+use_v2_tokenizer: true
+
+---
+
+name: llama3_2_1b_instruct_abliterated
+model_family: llama
+model_arch: llama3_2_1b
+checkpoint: "/checkpoint/memorization/apaulus/models/Llama-3.2-1B-Instruct-abliterated"
+tokenizer: "/checkpoint/memorization/apaulus/models/Llama-3.2-1B-Instruct-abliterated"
+tokenizer_family: llama
+use_v2_tokenizer: true
+
+---
+
+name: llama3_1_8b_instruct_20250829-192241_defender_step_300
+model_family: llama
+model_arch: llama3_1_8b
+checkpoint: "/checkpoint/memorization/apaulus/gdpo_pairwise_llama3_1_8b_abliterated_llama3_1_8b_llama3_3_70b_abliterated_20250829-192241/defender/checkpoints/step_300/hg"
+tokenizer: "/checkpoint/memorization/apaulus/models/Llama-3.1-8B-Instruct"
+tokenizer_family: llama
+use_v2_tokenizer: true
+
+---
+
+name: llama3_1_8b_instruct_abliterated_20250829-192241_attacker_step_300
+model_family: llama
+model_arch: llama3_1_8b
+checkpoint: "/checkpoint/memorization/apaulus/gdpo_pairwise_llama3_1_8b_abliterated_llama3_1_8b_llama3_3_70b_abliterated_20250829-192241/attacker/checkpoints/step_300/hg"
+tokenizer: "/checkpoint/memorization/apaulus/models/Llama-3.1-8B-Instruct-abliterated"
+tokenizer_family: llama
+use_v2_tokenizer: true

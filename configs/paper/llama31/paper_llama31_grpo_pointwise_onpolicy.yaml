@@ -1,7 +1,7 @@
 dataset:
   _set_:
     name: wildjailbreak_alpaca
-    path: /checkpoint/memorization/apaulus/datasets/wildjailbreak_alpaca
+    path: /scratch/datasets/wildjailbreak_alpaca
     train_split: # During a single step, we will loop through a batch of each and do a gradient step on each. Consider accumulating gradients to only do a single update.
       - train_vanilla_harmful
       - train_vanilla_benign
@@ -139,21 +139,21 @@ criterion:
             attacker_format_instruction_name: "FORMAT_INSTRUCTION_ATTACKER_NON_REASONING_MODEL_THINK_PROMPT_STRICT_V0_0"
             defender_task_instruction_name: "TASK_INSTRUCTION_DEFENDER_RAW"
             defender_format_instruction_name: "FORMAT_INSTRUCTION_DEFENDER_NON_REASONING_MODEL_NOTHINK_ANY_V0_0"
-          judgment_extractor_prompt_mask: 
+          judgment_extractor_prompt_mask:
             name: "prompt_mask_pointwise_extractor" # or null
             config:
               log_rollouts: true
               task_instruction_benign_name: "TASK_INSTRUCTION_FAITHFULNESS_BENIGN_V2_0"
               task_instruction_harmful_name: "TASK_INSTRUCTION_FAITHFULNESS_HARMFUL_V0_0"
               format_instruction_name: "FORMAT_INSTRUCTION_FAITHFULNESS_NON_REASONING_MODEL_THINK_V0_0"
-          judgment_extractor_attacker: 
+          judgment_extractor_attacker:
             name: "attacker_pointwise_score_extractor" # pairwise or pointwise, adjust templates accordingly
             config:
               log_rollouts: true
               task_instruction_benign_name: "TASK_INSTRUCTION_POINTWISE_REFUSAL_V1_0"
               task_instruction_harmful_name: "TASK_INSTRUCTION_POINTWISE_COMPLIANCE_V0_0"
               format_instruction_name: "FORMAT_INSTRUCTION_POINTWISE_NON_REASONING_MODEL_THINK_V0_0"
-          judgment_extractor_defender: 
+          judgment_extractor_defender:
             name: "defender_pointwise_score_extractor" # pairwise or pointwise, adjust templates accordingly
             config:
               log_rollouts: true

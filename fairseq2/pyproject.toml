@@ -1,0 +1,105 @@
+[project]
+name = "fairseq2"
+dynamic = ["version", "license", "authors", "keywords", "classifiers", "scripts"]
+description = "fairseq2"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "clusterscope>=0.0.6",
+    "pip>=25.2",
+    "tensorboard~=2.16",
+]
+
+
+[build-system]
+requires = ["packaging~=24.2", "setuptools~=75.8", "wheel~=0.45"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+extend-exclude = "third-party"
+
+[tool.flake8]
+extend_exclude = ["third-party"]
+extend_ignore = ["E", "Y"]  # Black
+per-file-ignores = [
+    "__init__.py:F401",
+]
+
+[tool.isort]
+extend_skip = "third-party"
+profile = "black"
+
+[tool.mypy]
+disable_error_code = "type-abstract,typeddict-unknown-key"
+disallow_untyped_calls = false
+disallow_untyped_decorators = false
+files = "setup.py,src,tests"
+python_version = "3.10"
+show_error_codes = true
+show_error_context = true
+strict = true
+enable_error_code = "possibly-undefined,redundant-expr,truthy-bool,truthy-iterable"
+warn_unused_configs = false
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+module = "torch.distributed.*,torch.optim.*"
+implicit_reexport = true
+
+[[tool.mypy.overrides]]
+module = "fairseq2.data.parquet.*,tests.unit.data.parquet.*,tests.integration.parquet.*"
+ignore_errors = true
+
+[tool.pytest.ini_options]
+minversion = "7.1"
+testpaths = ["tests"]
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    "ignore:distutils Version classes are deprecated:DeprecationWarning",
+    "ignore:pkg_resources is deprecated:DeprecationWarning",
+    "ignore:Deprecated call to `pkg_resources.declare_namespace:DeprecationWarning",
+    "ignore:To copy construct from a tensor:UserWarning",
+]
+
+[dependency-groups]
+llm = [
+    "vllm>=0.8.0",
+]
+
+[project.optional-dependencies]
+fs2v05-pt271-cu128 = [
+    "torch==2.7.1+cu128",
+    "torchaudio==2.7.1+cu128",
+    "torchvision==0.22.1+cu128",
+    "fairseq2n==0.5.2",
+]
+arrow = [
+    "pyarrow>=17.0.0",
+    "retrying~=1.3.4",
+    "polars>=1.19.0",
+    "xxhash~=3.5",
+]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu128", extra = "fs2v05-pt271-cu128" }
+]
+torchaudio = [
+    { index = "pytorch-cu128", extra = "fs2v05-pt271-cu128" }
+]
+torchvision = [
+    { index = "pytorch-cu128", extra = "fs2v05-pt271-cu128" }
+]
+fairseq2n = [
+    { index = "fairseq2-pt271-cu128", extra = "fs2v05-pt271-cu128" }
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[[tool.uv.index]]
+name = "fairseq2-pt271-cu128"
+url = "https://fair.pkg.atmeta.com/fairseq2/whl/pt2.7.1/cu128/"
+explicit = true

@@ -6,8 +6,8 @@
 
 ### SBATCH directives to specify job configuration
 ## %j is the job id, %u is the user id. These files are where output is printed.
-#SBATCH --output=/checkpoint/ram/kulikov/slurm_logs/%j.out
-#SBATCH --error=/checkpoint/ram/kulikov/slurm_logs/%j.err
+#SBATCH --output=/checkpoint/advgame/slurm_logs/%j.out
+#SBATCH --error=/checkpoint/advgame/slurm_logs/%j.err
 #SBATCH --job-name=grpo
 #SBATCH --nodes=5
 #SBATCH --mem=0G
@@ -59,13 +59,11 @@ NUM_TRAINING_PROCS=8
 # srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune /checkpoint/ram/kulikov/online_dpo_frombase_test --no-sweep-dir --config-file ./online_dpo_config.yaml --config criterion.config.vllm_model.ray_cluster_ip_address=$last_node_ip
 
 CONFIG_PATH=$1
-SAVE_BASE_PATH=${2:-"/checkpoint/"}
-if [[ "${SAVE_BASE_PATH}" != */ ]]; then
-    SAVE_BASE_PATH="${SAVE_BASE_PATH}/"
-fi
 CONFIG_NAME="${CONFIG_PATH##*/}"
 CONFIG_NAME="${CONFIG_NAME%.*}"
 DATE="$(date +%Y%m%d-%H%M%S)"
 RUN_NAME="${CONFIG_NAME}_${DATE}"
 
-srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune_game ${SAVE_BASE_PATH}${RUN_NAME} --no-sweep-dir --config-file ${CONFIG_PATH} --config vllm.ray_cluster_ip_address=$last_node_ip common.metric_recorders.wandb.run_name=$RUN_NAME
+DUMP_DIR=$2/run_$RUN_NAME
+
+srun --nodes $NUM_TRAINING_NODES --ntasks-per-node $NUM_TRAINING_PROCS fairseq2 lm online_finetune_game --no-sweep-dir $DUMP_DIR --config-file ${CONFIG_PATH} --config vllm.ray_cluster_ip_address=$last_node_ip common.metric_recorders.wandb.run_name=$RUN_NAME
