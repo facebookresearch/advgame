@@ -1,0 +1,17 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+from __future__ import annotations
+
+from typing import Final
+
+_TORCH_VERSION: Final = "@TORCH_PEP440_VERSION@"
+_TORCH_VARIANT: Final = "@TORCH_VARIANT@"
+
+_SUPPORTS_IMAGE: Final = @SUPPORTS_IMAGE@
+
+_SUPPORTS_CUDA: Final = @USES_CUDA@
+_CUDA_VERSION: Final = @CUDA_VERSION@

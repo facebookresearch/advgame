@@ -1,0 +1,214 @@
+dataset:
+  _set_:
+    name: wildjailbreak_alpaca
+    path: /scratch/datasets/wildjailbreak_alpaca
+    train_split: # During a single step, we will loop through a batch of each and do a gradient step on each. Consider accumulating gradients to only do a single update.
+      - train_vanilla_harmful
+      - train_vanilla_benign
+    train_skip_attacker: # match order of train_split
+      - false
+      - false
+    train_dataset_scales: # match order of train_split
+      - 1.0
+      - 1.0
+    valid_split:
+      - valid_vanilla_harmful_256
+      - valid_vanilla_benign_256
+      - valid_adversarial_harmful_256
+      - valid_adversarial_benign_128
+    valid_skip_attacker: # match order of valid_split
+      - true
+      - true
+      - true
+      - true
+    batch_size: 4
+    eval_batch_size: 64
+    src_key: "prompt"
+  extras:
+    _set_:
+      keep_jsonl_keys:
+        - prompt_text
+        - category
+# models that will be trained
+model_attacker:
+  _set_:
+    name: qwen25_7b_instruct_scratch # should point to attacker model directory
+    compile: false
+model_defender:
+  _set_:
+    name: qwen25_7b_instruct_scratch # should point to defender model directory
+    compile: false
+# models used for generation, should be the same architecture as the models being trained
+ema_model_attacker:
+  _set_:
+    name: qwen25_7b_instruct_scratch # same as model_attacker unless warmstarting
+    compile: false
+ema_model_defender:
+  _set_:
+    name: qwen25_7b_instruct_scratch # same as model_defender unless warmstarting
+    compile: false
+# reference models used for computing logprobs of the sampled generations, should be the same architecture as the models being trained
+ref_model_attacker:
+  _set_:
+    name: qwen25_7b_instruct_scratch # same as model_attacker unless warmstarting
+    compile: false
+ref_model_defender:
+  _set_:
+    name: qwen25_7b_instruct_scratch # same as model_defender unless warmstarting
+    compile: false
+# Note: this tokenizer is actually not used. Instead set tokenizer_attacker_name and tokenizer_defender_name in the criterion config.
+tokenizer:
+  _set_:
+    name: qwen25_7b_instruct_scratch
+optimizer_attacker:
+  config:
+    _set_:
+      lr: 1e-6
+optimizer_defender:
+  config:
+    _set_:
+      lr: 1e-6
+vllm:
+  _set_:
+    ray_actors:
+      - ray_actor_name: vllm_model_attacker
+        num_replicas: 1
+        sync_schedule: "all" # all, round_robin, smart_coverage
+        vllm_engine_args:
+          model: /scratch/models/Qwen2.5-7B-Instruct # should point to attacker model directory
+          tokenizer: /scratch/models/Qwen2.5-7B-Instruct # should point to attacker model directory
+          tensor_parallel_size: 1
+          enforce_eager: False
+        vllm_sampling_params:
+          n: 1 # do not modify
+          temperature: 0.6
+          top_p: 0.9
+          max_tokens: 2048
+          logprobs: 1
+          prompt_logprobs: 1
+        init_update_process_group: True
+      - ray_actor_name: vllm_model_defender
+        num_replicas: 1
+        sync_schedule: "all" # all, round_robin, smart_coverage
+        vllm_engine_args:
+          model: /scratch/models/Qwen2.5-7B-Instruct # should point to defender model directory
+          tokenizer: /scratch/models/Qwen2.5-7B-Instruct # should point to defender model directory
+          tensor_parallel_size: 1
+          enforce_eager: False
+        vllm_sampling_params:
+          n: 1 # do not modify
+          temperature: 0.6
+          top_p: 0.9
+          max_tokens: 2048
+          logprobs: 1
+          prompt_logprobs: 1
+        init_update_process_group: True
+      - ray_actor_name: vllm_reward
+        num_replicas: 6
+        blocking_initialization: false
+        vllm_engine_args:
+          model: /scratch/models/Qwen2.5-32B-Instruct # should point to reward model directory
+          tokenizer: /scratch/models/Qwen2.5-32B-Instruct # should point to reward model directory
+          tensor_parallel_size: 1
+          enforce_eager: False
+        vllm_sampling_params:
+          n: 1 # do not modify
+          temperature: 0.6
+          top_p: 0.9
+          max_tokens: 8192
+        init_update_process_group: False
+criterion:
+  _set_:
+    name: grpo_game
+  config:
+    _set_:
+      reward:
+        name: "generative_game_verifier"
+        config:
+          tokenizer_attacker_name: /scratch/models/Qwen2.5-7B-Instruct # should point to attacker model directory
+          tokenizer_defender_name: /scratch/models/Qwen2.5-7B-Instruct # should point to defender model directory
+          tokenizer_reward_name: /scratch/models/Qwen2.5-32B-Instruct # should point to reward model directory
+          rollout_tree:
+            log_rollouts: true
+            optimistic_attacker: true
+            num_attacker_samples: 4
+            num_defender_samples: 4
+            reward_normalization_mode: "across_seeds" # "across_seeds" or "per_seed"
+            attacker_task_instruction_benign_name: "TASK_INSTRUCTION_ATTACKER_BENIGN_V0_0"
+            attacker_task_instruction_harmful_name: "TASK_INSTRUCTION_ATTACKER_HARMFUL_V0_0"
+            attacker_format_instruction_name: "FORMAT_INSTRUCTION_ATTACKER_NON_REASONING_MODEL_THINK_PROMPT_STRICT_V0_0"
+            defender_task_instruction_name: "TASK_INSTRUCTION_DEFENDER_RAW"
+            defender_format_instruction_name: "FORMAT_INSTRUCTION_DEFENDER_NON_REASONING_MODEL_NOTHINK_ANY_V0_0"
+          judgment_extractor_prompt_mask:
+            name: "prompt_mask_pointwise_extractor" # or null
+            config:
+              log_rollouts: true
+              task_instruction_benign_name: "TASK_INSTRUCTION_FAITHFULNESS_BENIGN_V2_0"
+              task_instruction_harmful_name: "TASK_INSTRUCTION_FAITHFULNESS_HARMFUL_V0_0"
+              format_instruction_name: "FORMAT_INSTRUCTION_FAITHFULNESS_NON_REASONING_MODEL_THINK_V0_0"
+          judgment_extractor_attacker:
+            name: "attacker_pairwise_score_extractor" # pairwise or pointwise, adjust templates accordingly
+            config:
+              log_rollouts: true
+              task_instruction_benign_name: "TASK_INSTRUCTION_PAIRWISE_REFUSAL_V1_0"
+              task_instruction_harmful_name: "TASK_INSTRUCTION_PAIRWISE_COMPLIANCE_V0_0"
+              format_instruction_name: "FORMAT_INSTRUCTION_PAIRWISE_NON_REASONING_MODEL_THINK_V0_0"
+          judgment_extractor_defender:
+            name: "defender_pairwise_score_extractor" # pairwise or pointwise, adjust templates accordingly
+            config:
+              log_rollouts: true
+              task_instruction_benign_name: "TASK_INSTRUCTION_PAIRWISE_COMPLIANCE_V0_0"
+              task_instruction_harmful_name: "TASK_INSTRUCTION_PAIRWISE_DEFLECTION_V0_0"
+              format_instruction_name: "FORMAT_INSTRUCTION_PAIRWISE_NON_REASONING_MODEL_THINK_V0_0"
+              condition_on: "prompt" # "seed" or "prompt"
+      loss_config:
+        beta: 0.1
+        length_normalization: false
+        entropy_regularizer_scale: 0.0
+        use_ema_model_as_ref_model: false
+        num_microbatches_B: 4 # should evenly divide batch_size
+        num_microbatches_A: 2 # should evenly divide num_attacker_samples
+        num_microbatches_D: 2 # should evenly divide num_defender_samples
+        loss_token_mean: false # DrGRPO-style normalization
+        use_importance_sampling_correction: true # recommended if on-policy (sync_ema_model_instead_of_train_model=False), has to be false if off-policy
+        tis_imp_ratio_cap: 2.0 # truncated importance sampling ratio cap, only used if use_importance_sampling_correction=True
+      vllm_sync:
+        sync_model_every_n_steps: 1 # how often to call the generator vllm syncing (not related to ema). If sync_schedule in ray_actors is "smart_coverage", set this to 1
+        sync_ema_model_instead_of_train_model: false # decides if on- or off-policy
+regime:
+  _set_:
+    num_steps: 1000
+    validate_at_start: true
+    checkpoint_every_n_data_epochs: 1
+    validate_every_n_data_epochs: null
+    validate_every_n_steps: 25
+    checkpoint_every_n_steps: 50
+    keep_last_n_checkpoints: 100
+    save_model_only: true
+    save_as_hugging_face: true
+    checkpoint_models: true # whether to checkpoint the models being trained
+    checkpoint_ema_models: true # whether to checkpoint the generation models (only makes sense if ema_model_ema_decay is not null)
+    checkpoint_ref_models: false # whether to checkpoint the reference models (only makes sense if ref_model_ema_decay is not null)
+trainer:
+  _set_:
+    mixed_precision: static
+    max_grad_norm: 1.0
+    train_attacker: true # whether to train the attacker model or keep it frozen
+    train_defender: true # whether to train the defender model or keep it frozen
+    ema_attacker_ema_decay: 0.95 # EMA model that we can save (checkpoint_ema_models=True) / use as reference (use_ema_model_as_ref_model=True) / use for generation (sync_ema_model_instead_of_train_model=True)
+    ema_defender_ema_decay: 0.95
+    ref_attacker_ema_decay: null # optionally can also have a (potentially slower moving) EMA on the reference model
+    ref_defender_ema_decay: null
+    summon_full_parameters_for_validation: false
+  grad_accumulation:
+    _set_:
+      num_batches: 1 # accumulate gradients over this many batches (note: set to number train_splits to accumulate gradient over different splits)
+common:
+  metric_recorders:
+    wandb:
+      _set_:
+        enabled: true
+        entity: "llm-attack-gang"
+        project: "llm-attacks"
+        run_id: auto
+        run_name: "paper_qwen25_ablations_grpo_pairwise_onpolicy"
