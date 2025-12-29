@@ -67,7 +67,7 @@ cd fairseq2
 uv sync --extra fs2v05-pt271-cu128 --group llm --active
 
 echo "Installing additional packages..."
-uv pip install polars retrying pandas xxhash importlib_resources ruamel.yaml importlib_metadata pyarrow torcheval sacrebleu editdistance
+uv pip install polars retrying pandas xxhash importlib_resources ruamel.yaml importlib_metadata pyarrow torcheval sacrebleu editdistance wandb
 
 install_libsndfile $VIRTUAL_ENV/lib64
 
